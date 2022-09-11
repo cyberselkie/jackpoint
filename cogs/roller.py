@@ -20,7 +20,7 @@ load_dotenv()
 servers = os.getenv("servers")
 #==========================================
 
-class dice_roller(discord.Cog): # create a class for our cog that inherits from commands.Cog
+class roller(discord.Cog): # create a class for our cog that inherits from commands.Cog
     # this class is used to create a cog, which is a module that can be added to the bot
 
     def __init__(self, bot_: discord.Bot):
@@ -56,8 +56,13 @@ class dice_roller(discord.Cog): # create a class for our cog that inherits from 
 
    # @roll.command(guild_ids=servers, description="Auto Extended Test.")
    # async def extest(self, ctx):
+    @roll.command(guild_ids=servers)
+    async def length_test(self, ctx):
+        string = "                                   "
+        length = string.count(" ")
+        print(length)
 
 
 #YAY COGS
 def setup(bot):
-    bot.add_cog(dice_roller(bot))
+    bot.add_cog(roller(bot))

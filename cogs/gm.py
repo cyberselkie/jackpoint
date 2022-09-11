@@ -103,26 +103,26 @@ class gm(discord.Cog): # create a class for our cog that inherits from commands.
         self.bot = bot_
     
     #subcommands and sub-subcommands
-    gm = SlashCommandGroup("gm", "GM commands.")
-    new = gm.create_subgroup("new", "GM commands related to creation.")
-    npc = gm.create_subgroup("npc", "GM commands related to NPCs.")
-    nodes = gm.create_subgroup("node", "GM commands related to Nodes.")
+    save = SlashCommandGroup("save", "Creation commands.")
+    #new = gm.create_subgroup("new", "GM commands related to creation.")
+    view = SlashCommandGroup("view", "View saved items command.")
+    npc = view.create_subgroup("npc", "Viewing parts of NPCs.")
 
     # CREATION COMMANDS 
     #node
-    @new.command(guild_ids=servers, description="Allows you to save a node to the bot.")
+    @save.command(guild_ids=servers, description="Allows you to save a node to the bot.")
     async def node(self, ctx, name=Option(str,"Name of the node. Make it unique from your other nodes.", required=True)):
         modal = NodeInput(title="Create a new Node.", name=name)
         await ctx.send_modal(modal)
 
     #agent
-    @new.command(guild_ids=servers, description="Allows you to save a agent to the bot.")
+    @save.command(guild_ids=servers, description="Allows you to save a agent to the bot.")
     async def agent(self, ctx, name=Option(str,"Name of the agent. Make it unique from your other agent.", required=True)):
         modal = AgentInput(title="Create a new Agent.", name=name)
         await ctx.send_modal(modal)
 
     #NPC
-    @new.command(guild_ids=servers, name="npc", description="Allows you to save the .chum file of an NPC to the bot.")
+    @save.command(guild_ids=servers, name="npc", description="Allows you to save the .chum file of an NPC to the bot.")
     @option(
     "attachment",
     discord.Attachment,
@@ -151,8 +151,8 @@ class gm(discord.Cog): # create a class for our cog that inherits from commands.
 
     # LOOKUP COMMANDS 
     #lookup node
-    @nodes.command(guild_ids=servers, description="Allows you to search the skills of the saved NPC.")
-    async def search(self,ctx,name = Option(str, "Name of the NPC.", required=True)):
+    @view.command(guild_ids=servers, name="node",description="Allows you to search the skills of the saved NPC.")
+    async def _node(self,ctx,name = Option(str, "Name of the NPC.", required=True)):
         userid = ctx.user.id
         guildid = ctx.guild.id
         node = find_node(userid, guildid, name)

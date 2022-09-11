@@ -27,6 +27,31 @@ class section():
         row = file.pull_db(guildid, select)
         text = row[0] #grab the whole node
         return(text)
+    
+    def _comm(self, userid, guildid, name):
+        file = FileManip()
+        name = f'\'{name.lower()}\''
+        select = f"SELECT * FROM Comm_Variables WHERE name={name} GROUP BY userid={userid}"
+        row = file.pull_db(guildid, select)
+        text = row[0]
+        return(text)
+
+    def find_Active_Character(self, userid, guildid):
+        file = FileManip()
+        select = f"SELECT active_char FROM User_Variables WHERE userid={userid}"
+        active = file.pull_db(guildid, select)
+        print(active)
+        text = active[0][0]
+        return(text)
+
+    def find_Active_SIN(self, userid, guildid):
+        file = FileManip()
+        select = f"SELECT active_sin FROM User_Variables WHERE userid={userid}"
+        active = file.pull_db(guildid, select)
+        print(active)
+        text = active[0][0]
+        return(text)
+    
 
 class program_format():
         #Split Programs
@@ -100,3 +125,51 @@ def find_node(userid, guildid, name):
     programs = program_format().programs_split(program_data)
     programs_list = [system, response, firewall, signal, programs]
     return(programs_list)
+
+# Lookup Comm Info
+def find_comm(userid, guildid, name):
+    tree = section().sheet(userid, guildid, name)
+    comm = section()._comm(userid, guildid, name)
+    #USERID 0 CHAR_NAME 1 COMM_CURRENT 2 COMM_MODE 3 MODULE1 4 MODULE2 5 MODULE3 6
+    commlink = {}
+    comm_current = comm[2].title()
+    commlink["comm_name"] = comm_current
+    commlink["comm_mode"] = comm[3]
+    commlink["module1"] = comm[4]
+    commlink["module2"] = comm[5]
+    commlink["module3"] = comm[6]
+
+    for x in tree.findall('gears/gear'): #look through gear for commlinks
+        if x.find('category').text == "Commlink" and x.find('name').text == comm_current:
+            commlink["response"] = x.find('response').text
+            commlink["signal"] = x.find('signal').text
+            for child in x.find('children'):
+                if child.find('category').text == "Commlink Operating System":
+                    commlink["os_name"] = child.find('name').text
+                    commlink["firewall"] = child.find('firewall').text
+                    commlink["system"] = child.find('system').text
+                else: pass
+                if child.find('category').text == "Commlink Operating System Upgrade":
+                    if child.find('firewall').text != 0:
+                        commlink["firewall"] = child.find('firewall').text
+                    else: pass
+                    if child.find('system').text != 0:
+                        commlink["system"] = child.find('system').text
+                    else: pass
+        else:
+            continue
+    print(commlink)
+    return(commlink)
+
+def find_SIN(userid, guildid, name):
+    tree = section().sheet(userid, guildid, name)
+    sinner = {}
+    #if x in tree:findall()
+    for x in tree.findall('gears/gear'):
+        if x.find('name').text == "Fake SIN":
+            rating = x.find('rating').text
+            name = x.find('extra').text
+            sinner[name] = rating
+        else: continue
+    print(sinner)
+    return(sinner)

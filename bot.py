@@ -46,7 +46,16 @@ async def create_connection(ctx): #Create SQLite database for server.
     #CHARACTER SHEETS & NPCS
     cursor.execute('''CREATE TABLE IF NOT EXISTS Sheets
               (userid INT, name TEXT, chum TEXT)''')
-    
+    #NETWORKS
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Networks
+              (userid INT, name TEXT, nodes TEXT)''')
+    #COMM VARIABLES
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Comm_Variables
+              (userid INT, name TEXT, comm_current TEXT, comm_mode TEXT, module1 TEXT, module2 TEXT, module3 TEXT)''')
+    #USER VARIABLES
+    cursor.execute('''CREATE TABLE IF NOT EXISTS User_Variables
+              (userid INT, active_char TEXT, active_sin TEXT)''')
+
     connection.commit()
     connection.close()
 
@@ -55,7 +64,9 @@ async def create_connection(ctx): #Create SQLite database for server.
 #=======================
 cogs_list = [
     'gm',
-    'dice_roller'
+    'roller',
+    'variable_setup',
+    'matrix'
 ]
 
 for cog in cogs_list:
