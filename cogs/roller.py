@@ -1,13 +1,7 @@
 import os
 from dotenv import load_dotenv
 import discord
-from discord import option
-from discord import Option
 from discord.commands import SlashCommandGroup
-import xml.etree.ElementTree as ET
-import sqlite3
-import urllib.request
-from urllib.request import Request
 import asyncio
 
 #import functions

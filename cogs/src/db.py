@@ -34,6 +34,7 @@ class Shadow_DB():
         db = None
         try:
             db = sqlite3.connect(filename)
+            print(db)
         except Error as e:
             print(e)
 
@@ -69,6 +70,7 @@ class Shadow_DB():
         """
         db.commit()
         db.close()
+        print(f"closed {db}.")
 
 def main_db(filename, sql_statement, values):
     data = Shadow_DB()

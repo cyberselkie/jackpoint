@@ -4,11 +4,7 @@ import discord
 from discord import option
 from discord import Option
 from discord.commands import SlashCommandGroup
-import xml.etree.ElementTree as ET
 import sqlite3
-import urllib.request
-from urllib.request import Request
-import asyncio
 
 #import functions
 from cogs.src.lookup import *
@@ -106,7 +102,6 @@ class gm(discord.Cog): # create a class for our cog that inherits from commands.
     save = SlashCommandGroup("save", "Creation commands.")
     #new = gm.create_subgroup("new", "GM commands related to creation.")
     view = SlashCommandGroup("view", "View saved items command.")
-    npc = view.create_subgroup("npc", "Viewing parts of NPCs.")
 
     # CREATION COMMANDS 
     #node
@@ -122,14 +117,14 @@ class gm(discord.Cog): # create a class for our cog that inherits from commands.
         await ctx.send_modal(modal)
 
     #NPC
-    @save.command(guild_ids=servers, name="npc", description="Allows you to save the .chum file of an NPC to the bot.")
+    @save.command(guild_ids=servers, name="sheet", description="Allows you to save the .chum file of an NPC to the bot.")
     @option(
     "attachment",
     discord.Attachment,
     description="The .chum file of your character.",
     required=True
     )
-    async def upload_npc(self, ctx, name: Option(str,'Name of the character.', required=True), attachment: discord.Attachment):
+    async def upload_sheet(self, ctx, name: Option(str,'Name of the character.', required=True), attachment: discord.Attachment):
         userid = ctx.user.id
         guildid = ctx.guild.id
         chumcheck = attachment.filename[-5:]
@@ -143,7 +138,7 @@ class gm(discord.Cog): # create a class for our cog that inherits from commands.
             values = (userid,name,chumstr);
             table = "Sheets"
             main_db(filename, sql_statement, values)
-            Shadow_DB().exit_db()
+            Shadow_DB().exit_db() #close DB, don't need it open anymore
 
             await ctx.respond(f"Character {name} uploaded!")
         else:
@@ -151,11 +146,13 @@ class gm(discord.Cog): # create a class for our cog that inherits from commands.
 
     # LOOKUP COMMANDS 
     #lookup node
-    @view.command(guild_ids=servers, name="node",description="Allows you to search the skills of the saved NPC.")
-    async def _node(self,ctx,name = Option(str, "Name of the NPC.", required=True)):
+    @view.command(guild_ids=servers, name="node",description="Allows you to search the statistics of the saved nodes.")
+    async def _node(self,ctx,name = Option(str, "Name of the Node.", required=True)):
         userid = ctx.user.id
         guildid = ctx.guild.id
-        node = find_node(userid, guildid, name)
+        db = FileManip().pull_db(guildid) 
+        node = find(userid, db, name).find_node()
+        Shadow_DB().exit_db() #close DB, don't need it open anymore
         #SYSTEM 0 RESPONSE 1 FIREWALL 2 SIGNAL 3 PROGRAMS 4
         system = node[0]
         response = node[1]
@@ -173,11 +170,13 @@ Programs: {programs}""")
     #lookup agent
 
     #lookup npc skills
-    @npc.command(guild_ids=servers, description="Allows you to search the skills of the saved NPC.")
+    @view.command(guild_ids=servers, description="Allows you to search the skills of the saved characters.")
     async def skills(self,ctx,name = Option(str, "Name of the NPC.", required=True), lookup=None):
         userid = ctx.user.id
         guildid = ctx.guild.id
-        skills = find_skill(userid, guildid, name) #pull proper section from db
+        db = FileManip().pull_db(guildid) #open db
+        skills = find(userid, db, name).find_skill() #pull proper section from db
+        Shadow_DB().exit_db() #close DB, don't need it open anymore
         txt = f"```css\n// {name} //\n"
         # RATING O TOTVALUE 1 SPEC 2 KNOWLEDGE 3 ATTRIBUTE 4
         if lookup is not None:
@@ -221,14 +220,16 @@ Total Skill: {values[1]}"""
                         await ctx.respond(txt)
                         txt = "```css" #start new message
                         continue
-            txt += "\n// end attachment //\n ```"
+            txt += "\n// end attachment //\n```"
             await ctx.send(txt)
     
-    @npc.command(guild_ids=servers, description="Allows you to search the programs of the saved NPCs.")
+    @view.command(guild_ids=servers, description="Allows you to search the programs of the saved characters.")
     async def programs(self, ctx, name = Option(str, "Name of the NPC.", required=True)):
         userid = ctx.user.id
         guildid = ctx.guild.id
-        programs = find_program(userid, guildid, name)
+        db = FileManip().pull_db(guildid)
+        programs = find(userid, db, name).find_program()
+        Shadow_DB().exit_db() #close DB, don't need it open anymore
         txt = f"```css\n// {name} //\n"
         for x in programs:
             values = programs[x]

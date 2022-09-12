@@ -26,9 +26,11 @@ class matrix(discord.Cog):
     @comm.command(name="open", guild_ids=servers, description="Pull up your Commlink interface.")
     async def open_(self, ctx):
         userid = ctx.user.id 
-        guildid = ctx.guild.id 
-        output = create_comm(userid, guildid)
-
+        guildid = ctx.guild.id
+        db = FileManip().pull_db(guildid)
+        name = section(userid, db).find_Active_Character()
+        output = create_comm(userid, db, name)
+        Shadow_DB().exit_db() #close DB, don't need it open anymore
         await ctx.respond(output)
 
 #YAY COGS

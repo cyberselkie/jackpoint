@@ -4,6 +4,8 @@ from sqlite3 import Error
 import urllib.request
 from urllib.request import Request, urlopen
 
+from cogs.src.db import Shadow_DB
+
 class FileManip():
     """
     Description:
@@ -22,11 +24,17 @@ class FileManip():
 
         return(chumstr)
 
-    def pull_db(self, guildid, select):
+    def pull_db(self, guildid):
         fp = f"cogs/src/db/{guildid}.db"
-        db = sqlite3.connect(fp) #connect to db
+        db = Shadow_DB().connect_db(fp) #connect to db
+
+        return(db)
+
+    def cursor_db(self, db, select):
         cursor = db.cursor()
         cursor.execute(select)
         txt = cursor.fetchall()
+        cursor.close()
+        print("cursor closed")
 
         return(txt)
