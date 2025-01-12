@@ -4,7 +4,7 @@ from sqlite3 import Error
 import urllib.request
 from urllib.request import Request, urlopen
 
-from cogs.src.db import Shadow_DB
+from src.db import Shadow_DB
 
 class FileManip():
     """
@@ -25,7 +25,7 @@ class FileManip():
         return(chumstr)
 
     def pull_db(self, guildid):
-        fp = f"cogs/src/db/{guildid}.db"
+        fp = f"src/db/{guildid}.db"
         db = Shadow_DB().connect_db(fp) #connect to db
 
         return(db)

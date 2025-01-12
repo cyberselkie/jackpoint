@@ -3,3 +3,5 @@
 /*.chum
 /*.pem
 /*.xml
+__pycache__
+/*.db

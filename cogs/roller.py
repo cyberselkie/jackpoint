@@ -5,10 +5,10 @@ from discord.commands import SlashCommandGroup
 import asyncio
 
 #import functions
-from cogs.src.lookup import *
-from cogs.src.db import *
-from cogs.src.dice import *
-from cogs.src.file_manip import *
+import src.lookup as lup
+import src.db as db
+import src.dice as dice
+import src.file_manip as fm
 #==========================================
 load_dotenv()
 servers = os.getenv("servers")

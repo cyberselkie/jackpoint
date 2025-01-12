@@ -7,10 +7,10 @@ from discord.commands import SlashCommandGroup
 import sqlite3
 
 #import functions
-from cogs.src.lookup import *
-from cogs.src.db import *
-from cogs.src.dice import *
-from cogs.src.file_manip import *
+import src.lookup as lup
+import src.db as db
+import src.dice as dice
+import src.file_manip as fm
 #==========================================
 load_dotenv()
 servers = os.getenv("servers")
@@ -40,7 +40,7 @@ class NodeInput(discord.ui.Modal):
         guildid = interaction.guild_id
         
         #Connect 2 the DB
-        connection = sqlite3.connect(f'cogs/src/db/{guildid}.db') #make or connect to database  
+        connection = sqlite3.connect(f'src/db/{guildid}.db') #make or connect to database  
         cursor = connection.cursor()
         cursor.execute(f"""INSERT INTO Nodes 
                           (userid, name, system, response, firewall, signal, programs) 
@@ -74,7 +74,7 @@ class AgentInput(discord.ui.Modal):
         guildid = interaction.guild_id
         
         #Connect 2 the DB
-        connection = sqlite3.connect(f'cogs/src/db/{guildid}.db') #make or connect to database  
+        connection = sqlite3.connect(f'src/db/{guildid}.db') #make or connect to database  
         cursor = connection.cursor()
 
         cursor.execute("""INSERT INTO Agents
@@ -129,16 +129,16 @@ class gm(discord.Cog): # create a class for our cog that inherits from commands.
         guildid = ctx.guild.id
         chumcheck = attachment.filename[-5:]
         if chumcheck == ".chum":
-            grab = FileManip()
+            grab = fm.FileManip()
             chumstr = grab.pull_attachment(attachment)
             name = name.lower()
             #connect to database
-            filename = f'cogs/src/db/{guildid}.db'
+            filename = f'src/db/{guildid}.db'
             sql_statement = "INSERT INTO Sheets (userid, name, chum) VALUES (?,?,?) "
             values = (userid,name,chumstr);
             table = "Sheets"
-            main_db(filename, sql_statement, values)
-            Shadow_DB().exit_db() #close DB, don't need it open anymore
+            db.main_db(filename, sql_statement, values)
+            db.Shadow_DB().exit_db() #close DB, don't need it open anymore
 
             await ctx.respond(f"Character {name} uploaded!")
         else:
@@ -150,9 +150,9 @@ class gm(discord.Cog): # create a class for our cog that inherits from commands.
     async def _node(self,ctx,name = Option(str, "Name of the Node.", required=True)):
         userid = ctx.user.id
         guildid = ctx.guild.id
-        db = FileManip().pull_db(guildid) 
-        node = find(userid, db, name).find_node()
-        Shadow_DB().exit_db() #close DB, don't need it open anymore
+        db = fm.FileManip().pull_db(guildid) 
+        node = lup.find(userid, db, name).find_node()
+        db.Shadow_DB().exit_db() #close DB, don't need it open anymore
         #SYSTEM 0 RESPONSE 1 FIREWALL 2 SIGNAL 3 PROGRAMS 4
         system = node[0]
         response = node[1]
@@ -174,9 +174,9 @@ Programs: {programs}""")
     async def skills(self,ctx,name = Option(str, "Name of the NPC.", required=True), lookup=None):
         userid = ctx.user.id
         guildid = ctx.guild.id
-        db = FileManip().pull_db(guildid) #open db
+        db = fm.FileManip().pull_db(guildid) #open db
         skills = find(userid, db, name).find_skill() #pull proper section from db
-        Shadow_DB().exit_db() #close DB, don't need it open anymore
+        db.Shadow_DB().exit_db() #close DB, don't need it open anymore
         txt = f"```css\n// {name} //\n"
         # RATING O TOTVALUE 1 SPEC 2 KNOWLEDGE 3 ATTRIBUTE 4
         if lookup is not None:
@@ -227,9 +227,9 @@ Total Skill: {values[1]}"""
     async def programs(self, ctx, name = Option(str, "Name of the NPC.", required=True)):
         userid = ctx.user.id
         guildid = ctx.guild.id
-        db = FileManip().pull_db(guildid)
-        programs = find(userid, db, name).find_program()
-        Shadow_DB().exit_db() #close DB, don't need it open anymore
+        db = fm.FileManip().pull_db(guildid)
+        programs = lup.find(userid, db, name).find_program()
+        db.Shadow_DB().exit_db() #close DB, don't need it open anymore
         txt = f"```css\n// {name} //\n"
         for x in programs:
             values = programs[x]

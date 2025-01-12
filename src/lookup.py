@@ -1,11 +1,12 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
 
-from cogs.src.file_manip import *
+import src.db as db
+import src.file_manip as fm
 
 class section():
     def __init__(self, userid, db, name=None):
-        self.file = FileManip()
+        self.file = fm.FileManip()
         self.userid = userid
         self.db = db
         if name is not None:
@@ -14,7 +15,7 @@ class section():
     def sheet(self): #find thing from sheets
         name = f'\'{self.name.lower()}\'' #names are stored lowercase & with quotes
         select = f"SELECT chum FROM Sheets WHERE name={name} GROUP BY userid={self.userid}"
-        row = FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self.db, select)
         text = row[0][0] # grab just the sheet
         tree = ET.fromstring(text) #turn it back into xml
         return(tree)
@@ -25,7 +26,7 @@ class section():
         #select = """SELECT name FROM sqlite_master  
                 #WHERE type='table';"""
         select = f"SELECT * FROM Nodes WHERE name={name} GROUP BY userid={self.userid}"
-        row = FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self.db, select)
         print(row)
         text = row[0] #grab the whole node
         return(text)
@@ -33,20 +34,20 @@ class section():
     def _comm(self):
         name = f'\'{self.name.lower()}\''
         select = f"SELECT * FROM Comm_Variables WHERE name={name} GROUP BY userid={self.userid}"
-        row = FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self.db, select)
         text = row[0]
         return(text)
 
     def find_Active_Character(self):
         select = f"SELECT active_char FROM User_Variables WHERE userid={self.userid}"
-        row = FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self.db, select)
         print(row)
         text = row[0][0]
         return(text)
 
     def find_Active_SIN(self):
         select = f"SELECT active_sin FROM User_Variables WHERE userid={self.userid}"
-        row = FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self.db, select)
         print(row)
         text = row[0][0]
         return(text)
@@ -82,12 +83,12 @@ class program_format():
 class find():
     def __init__(self, userid, db, name):
         self.userid = userid
-        self.guildid = db
+        self.db = db
         self.name = name
 
     # Find the relevant Skill or Skills of the Sheet --------------------------
     def find_skill(self):
-        tree = section(self.userid, self.guildid, self.name).sheet()
+        tree = section(self.userid, self.db, self.name).sheet()
         skills = {}
         for x in tree.findall('skills/skill'): #ElementTree is confusing so we have to search through all the skills first
             name = x.find('name').text
@@ -108,7 +109,7 @@ class find():
 
     # List Programs of the Sheet
     def find_program(self):
-        tree = section(self.userid, self.guildid, self.name).sheet()
+        tree = section(self.userid, self.db, self.name).sheet()
         programs = {}
         for x in tree.findall('gears/gear'): #Look through gear for Matrix Programs
             if x.find('category').text == "Matrix Programs":
@@ -120,7 +121,7 @@ class find():
 
     # Lookup Stored Node
     def find_node(self):
-        node = section(self.userid, self.guildid, self.name)._node()
+        node = section(self.userid, self.db, self.name)._node()
         #USERID 0 NAME 1 SYSTEM 2 RESPONSE 3 FIREWALL 4 SIGNAL 5 PROGRAMS 6
         system = node[2]
         response = node[3]
@@ -133,7 +134,7 @@ class find():
 
     # Lookup Comm Info
     def find_comm(self):
-        comm = section(self.userid, self.guildid, self.name)._comm()
+        comm = section(self.userid, self.db, self.name)._comm()
         #USERID 0 CHAR_NAME 1 COMM_CURRENT 2 COMM_MODE 3 MODULE1 4 MODULE2 5 MODULE3 6
         commlink = {}
         comm_current = comm[2].title()
@@ -143,7 +144,7 @@ class find():
         commlink["module2"] = comm[5]
         commlink["module3"] = comm[6]
 
-        tree = section(self.userid, self.guildid, self.name).sheet()
+        tree = section(self.userid, self.db, self.name).sheet()
         for x in tree.findall('gears/gear'): #look through gear for commlinks
             if x.find('category').text == "Commlink" and x.find('name').text == comm_current:
                 commlink["response"] = x.find('response').text
@@ -166,8 +167,9 @@ class find():
         print(commlink)
         return(commlink)
 
+    #Lookup SINs from .chum
     def find_SIN(self):
-        tree = section(self.userid, self.guildid, self.name).sheet()
+        tree = section(self.userid, self.db, self.name).sheet()
         sinner = {}
         #if x in tree:findall()
         for x in tree.findall('gears/gear'):
@@ -179,13 +181,15 @@ class find():
         print(sinner)
         return(sinner)
 
+    #Lookup first items in sheet
     def find_TopLevel(self, term):
-        tree = section(self.userid, self.guildid, self.name).sheet()
+        tree = section(self.userid, self.db, self.name).sheet()
         result = tree.find(term).text
         return (result)
 
+    #Lookup all weapons, separated into melee or ranged when called
     def find_Weapons(self, term):
-        tree = section(self.userid, self.guildid, self.name).sheet()
+        tree = section(self.userid, self.db, self.name).sheet()
         weapons = {}
         mod_list = []
         for x in tree.findall('weapons/weapon'):
@@ -218,3 +222,35 @@ class find():
         
         return(weapons)
 
+    #Lookup attributes
+    def find_Attributes(self):
+        tree = section(self.userid, self.db, self.name).sheet()
+        attrib = {}
+        for x in tree.findall('attributes/attribute'):
+            name = x.find('name').text
+            value = x.find('value').text
+            augmodifier = x.find('augmodifier').text
+            totalvalue = x.find('totalvalue').text
+
+            _list = [value, augmodifier, totalvalue]
+
+            attrib[name] = _list
+
+        return(attrib)
+
+    #lookup cyberware
+    def find_Cyberware(self):
+        tree = section(self.userid, self.db, self.name).sheet()
+        cyberware = {}
+        for x in tree.findall('cyberwares/cyberware'):
+            name = x.find('name').text
+            category = x.find('category').text
+            limbslot = x.find('limbslot').text
+            ess = x.find('ess').text
+            grade = x.find('grade').text
+
+            _list = [category, limbslot, ess, grade]
+                        #0          #1     #2   #3
+            cyberware[name] = _list
+            
+            return(cyberware)

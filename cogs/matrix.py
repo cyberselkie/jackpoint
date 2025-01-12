@@ -6,11 +6,11 @@ from discord import Option
 from discord.commands import SlashCommandGroup
 
 #import functions
-from cogs.src.lookup import *
-from cogs.src.db import *
-from cogs.src.dice import *
-from cogs.src.file_manip import *
-from cogs.src.commlink import create_comm
+import src.lookup as lup
+import src.db as d
+import src.dice as dice
+import src.file_manip as fm
+import src.commlink as comm
 #==========================================
 load_dotenv()
 servers = os.getenv("servers")
@@ -27,10 +27,10 @@ class matrix(discord.Cog):
     async def open_(self, ctx):
         userid = ctx.user.id 
         guildid = ctx.guild.id
-        db = FileManip().pull_db(guildid)
-        name = section(userid, db).find_Active_Character()
-        output = create_comm(userid, db, name)
-        Shadow_DB().exit_db() #close DB, don't need it open anymore
+        db = fm.FileManip().pull_db(guildid)
+        name = lup.section(userid, db).find_Active_Character()
+        output = comm.create_comm(userid, db, name)
+        d.Shadow_DB().exit_db() #close DB, don't need it open anymore
         await ctx.respond(output)
 
 #YAY COGS
