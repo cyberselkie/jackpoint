@@ -15,7 +15,7 @@ class section():
     def sheet(self): #find thing from sheets
         name = f'\'{self.name.lower()}\'' #names are stored lowercase & with quotes
         select = f"SELECT chum FROM Sheets WHERE name={name} GROUP BY userid={self.userid}"
-        row = fm.FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self, self.db, select)
         text = row[0][0] # grab just the sheet
         tree = ET.fromstring(text) #turn it back into xml
         return(tree)
@@ -26,7 +26,7 @@ class section():
         #select = """SELECT name FROM sqlite_master  
                 #WHERE type='table';"""
         select = f"SELECT * FROM Nodes WHERE name={name} GROUP BY userid={self.userid}"
-        row = fm.FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self, self.db, select)
         print(row)
         text = row[0] #grab the whole node
         return(text)
@@ -34,20 +34,20 @@ class section():
     def _comm(self):
         name = f'\'{self.name.lower()}\''
         select = f"SELECT * FROM Comm_Variables WHERE name={name} GROUP BY userid={self.userid}"
-        row = fm.FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self, self.db, select)
         text = row[0]
         return(text)
 
     def find_Active_Character(self):
         select = f"SELECT active_char FROM User_Variables WHERE userid={self.userid}"
-        row = fm.FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self, self.db, select)
         print(row)
         text = row[0][0]
         return(text)
 
     def find_Active_SIN(self):
         select = f"SELECT active_sin FROM User_Variables WHERE userid={self.userid}"
-        row = fm.FileManip().cursor_db(self.db, select)
+        row = fm.FileManip().cursor_db(self, self.db, select)
         print(row)
         text = row[0][0]
         return(text)
