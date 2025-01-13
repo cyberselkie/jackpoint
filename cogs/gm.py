@@ -174,8 +174,8 @@ Programs: {programs}""")
     async def skills(self,ctx,name = Option(str, "Name of the NPC.", required=True), lookup=None):
         userid = ctx.user.id
         guildid = ctx.guild.id
-        db = fm.FileManip().pull_db(guildid) #open db
-        skills = find(userid, db, name).find_skill() #pull proper section from db
+        d = fm.FileManip().pull_db(guildid) #open db
+        skills = lup.find(userid, d, name).find_skill() #pull proper section from db
         db.Shadow_DB().exit_db() #close DB, don't need it open anymore
         txt = f"```css\n// {name} //\n"
         # RATING O TOTVALUE 1 SPEC 2 KNOWLEDGE 3 ATTRIBUTE 4
@@ -195,6 +195,7 @@ Total Skill: {values[1]}
                 txt+=f"Spec: {values[2]} \n" 
             else:
                 pass
+            txt += "\n// end attachment //\n```"
             await ctx.respond(txt)
         else:
             for x in skills:

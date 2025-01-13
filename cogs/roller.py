@@ -27,7 +27,7 @@ class roller(discord.Cog): # create a class for our cog that inherits from comma
     async def test(self, ctx, edge=None):
         rating = 6
         tn = 10
-        rolls = roll(rating)
+        rolls = dice.roll(rating)
         result = rolls.extended_test(rating, edge, tn) #call function, get dict
         rolls_list = result["rolls"]
         hits = result["hits_list"]
